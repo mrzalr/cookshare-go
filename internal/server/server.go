@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -25,5 +26,5 @@ func (s *server) Run() error {
 
 	port := os.Getenv("SERVER_PORT")
 	log.Printf("Server running on port %s", port)
-	return s.App.Run(port)
+	return s.App.Run(fmt.Sprintf(":%s", port))
 }
