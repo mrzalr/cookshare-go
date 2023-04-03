@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/google/uuid"
 	"github.com/mrzalr/cookshare-go/internal/models"
 	"github.com/mrzalr/cookshare-go/internal/user"
 	"gorm.io/gorm"
@@ -22,5 +23,16 @@ func (r *repository) Create(user models.User) (models.User, error) {
 func (r *repository) FindByEmail(email string) (models.User, error) {
 	user := models.User{}
 	tx := r.db.Where("email = ?", email).First(&user)
+	return user, tx.Error
+}
+
+func (r *repository) FindByID(id uuid.UUID) (models.User, error) {
+	user := models.User{}
+	tx := r.db.Where("id = ?", id).First(&user)
+	return user, tx.Error
+}
+
+func (r *repository) Update(userID uuid.UUID, user models.User) (models.User, error) {
+	tx := r.db.Where("id = ?", userID).Updates(user)
 	return user, tx.Error
 }

@@ -18,9 +18,8 @@ func New(usecase auth.Usecase) *handler {
 
 func (h *handler) Register() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		userRequest := models.User{}
-
 		// BINDING JSON BODY TO MODELS
+		userRequest := models.User{}
 		if err := ctx.ShouldBindJSON(&userRequest); err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -51,9 +50,8 @@ func (h *handler) Register() gin.HandlerFunc {
 
 func (h *handler) Login() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		userRequest := models.User{}
-
 		// BINDING JSON BODY TO MODELS
+		userRequest := models.User{}
 		if err := ctx.ShouldBindJSON(&userRequest); err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,

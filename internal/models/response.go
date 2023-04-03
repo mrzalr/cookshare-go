@@ -20,6 +20,15 @@ func StatusBadGateway(errors []string) Response {
 	}
 }
 
+func StatusUnauthorized(errors []string) Response {
+	return Response{
+		Code:    http.StatusUnauthorized,
+		Message: "unauthorized",
+		Errors:  errors,
+		Data:    nil,
+	}
+}
+
 func StatusCreated(data interface{}) Response {
 	return Response{
 		Code:    http.StatusCreated,

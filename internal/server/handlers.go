@@ -4,18 +4,22 @@ import (
 	"github.com/gin-gonic/gin"
 	authHttpHandler "github.com/mrzalr/cookshare-go/internal/auth/delivery/http"
 	authUsecase "github.com/mrzalr/cookshare-go/internal/auth/usecase"
-	authRepo "github.com/mrzalr/cookshare-go/internal/user/repository/mysql"
+	userHttpHandler "github.com/mrzalr/cookshare-go/internal/user/delivery/http"
+	userRepo "github.com/mrzalr/cookshare-go/internal/user/repository/mysql"
+	userUsecase "github.com/mrzalr/cookshare-go/internal/user/usecase"
 )
 
-func (s *server) MapHandlers(app *gin.Engine) {
+func (s *server) MapRoutes(app *gin.Engine) {
 	// REPOSITORY
-	authRepository := authRepo.New(s.DB)
+	userRepository := userRepo.New(s.DB)
 
 	// USECASE
-	authUsecase := authUsecase.New(authRepository)
+	authUsecase := authUsecase.New(userRepository)
+	userUsecase := userUsecase.New(userRepository)
 
 	// HANDLER
 	authHandler := authHttpHandler.New(authUsecase)
+	userHandler := userHttpHandler.New(userUsecase, s.Mw)
 
 	// GROUPING
 	// VERSIONING
@@ -23,6 +27,8 @@ func (s *server) MapHandlers(app *gin.Engine) {
 
 	// DOMAIN
 	authRoutes := v1.Group("/auth")
+	userRoutes := v1.Group("/users")
 
-	authHttpHandler.MapRoutes(*authRoutes, *authHandler)
+	authHttpHandler.MapHandlers(*authRoutes, *authHandler)
+	userHttpHandler.MapHandlers(*userRoutes, *userHandler)
 }
