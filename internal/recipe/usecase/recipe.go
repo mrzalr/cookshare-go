@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/mrzalr/cookshare-go/internal/models"
 	"github.com/mrzalr/cookshare-go/internal/recipe"
@@ -42,11 +44,15 @@ func (u *usecase) GetRecipeByUser(userID uuid.UUID) ([]models.Recipe, error) {
 	return u.repository.FindByUser(userID)
 }
 
-func (u *usecase) UpdateRecipe(recipeID uuid.UUID, recipe models.Recipe) (models.Recipe, error) {
+func (u *usecase) UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.Recipe, error) {
 	// CHECKING IF RECIPE IS EXIST
 	foundRecipe, err := u.repository.FindByID(recipeID)
 	if err != nil {
 		return models.Recipe{}, err
+	}
+
+	if foundRecipe.UserID != userID {
+		return models.Recipe{}, fmt.Errorf("Non authorized user")
 	}
 
 	foundRecipe.Title = recipe.Title
@@ -65,11 +71,15 @@ func (u *usecase) UpdateRecipe(recipeID uuid.UUID, recipe models.Recipe) (models
 	return recipe, nil
 }
 
-func (u *usecase) DeleteRecipe(recipeID uuid.UUID) error {
+func (u *usecase) DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error {
 	// CHECKING IF RECIPE IS EXIST
-	_, err := u.repository.FindByID(recipeID)
+	foundRecipe, err := u.repository.FindByID(recipeID)
 	if err != nil {
 		return err
+	}
+
+	if foundRecipe.UserID == userID {
+		return fmt.Errorf("Non authorized user")
 	}
 
 	err = u.repository.Delete(recipeID)

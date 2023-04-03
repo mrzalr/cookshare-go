@@ -19,6 +19,6 @@ type Usecase interface {
 	GetAllRecipes() ([]models.ShortRecipe, error)
 	GetRecipeByID(recipeID uuid.UUID) (models.Recipe, error)
 	GetRecipeByUser(userID uuid.UUID) ([]models.Recipe, error)
-	UpdateRecipe(recipeID uuid.UUID, recipe models.Recipe) (models.Recipe, error)
-	DeleteRecipe(recipeID uuid.UUID) error
+	UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.Recipe, error)
+	DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error
 }
