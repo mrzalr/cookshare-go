@@ -19,7 +19,10 @@ func StartApplication() {
 	if err != nil {
 		log.Fatalf("Error when create new mysql connection | err : %v", err.Error())
 	}
-	db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Recipe{})
+	if err != nil {
+		log.Fatalf("Error when auto migrating table | err : %v", err.Error())
+	}
 
 	s := server.New(db)
 	if err := s.Run(); err != nil {

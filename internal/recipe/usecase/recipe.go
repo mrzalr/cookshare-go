@@ -17,7 +17,17 @@ func New(repository recipe.Repository) recipe.Usecase {
 }
 
 func (u *usecase) CreateRecipe(recipe models.Recipe) (models.Recipe, error) {
-	return u.repository.Create(recipe)
+	createdRecipe, err := u.repository.Create(recipe)
+	if err != nil {
+		return models.Recipe{}, err
+	}
+
+	insertedRecipe, err := u.repository.FindByID(createdRecipe.ID)
+	if err != nil {
+		return models.Recipe{}, err
+	}
+
+	return insertedRecipe, nil
 }
 
 func (u *usecase) GetAllRecipes() ([]models.ShortRecipe, error) {
@@ -52,7 +62,7 @@ func (u *usecase) UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe mode
 	}
 
 	if foundRecipe.UserID != userID {
-		return models.Recipe{}, fmt.Errorf("Non authorized user")
+		return models.Recipe{}, fmt.Errorf("non authorized user")
 	}
 
 	foundRecipe.Title = recipe.Title
@@ -78,8 +88,8 @@ func (u *usecase) DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error {
 		return err
 	}
 
-	if foundRecipe.UserID == userID {
-		return fmt.Errorf("Non authorized user")
+	if foundRecipe.UserID != userID {
+		return fmt.Errorf("non authorized user")
 	}
 
 	err = u.repository.Delete(recipeID)

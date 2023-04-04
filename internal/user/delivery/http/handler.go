@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +29,6 @@ func (h *handler) UpdateUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// GET USER ID
 		userID, err := uuid.Parse(ctx.Value("id").(string))
-		fmt.Println(userID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -96,7 +94,7 @@ func (h *handler) GetUserRecipes() gin.HandlerFunc {
 
 		ctx.JSON(
 			http.StatusOK,
-			models.StatusCreated(recipes),
+			models.StatusOk(recipes),
 		)
 
 	}

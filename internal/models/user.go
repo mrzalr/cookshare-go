@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +24,7 @@ type User struct {
 // CREATE USER ID AND HASH PASSWORD
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	u.ID = uuid.New()
+	fmt.Println("called")
 
 	return u.HashPassword()
 }

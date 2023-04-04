@@ -34,12 +34,12 @@ func (r *repository) FindByID(id uuid.UUID) (models.Recipe, error) {
 
 func (r *repository) FindByUser(userID uuid.UUID) ([]models.Recipe, error) {
 	recipe := []models.Recipe{}
-	tx := r.db.Where("user_id = ?", userID).Preload("User").First(&recipe)
+	tx := r.db.Where("user_id = ?", userID).Preload("User").Find(&recipe)
 	return recipe, tx.Error
 }
 
 func (r *repository) Update(recipeID uuid.UUID, recipe models.Recipe) (models.Recipe, error) {
-	tx := r.db.Where("id = ?", recipeID).Updates(recipe)
+	tx := r.db.Model(&models.Recipe{}).Where("id = ?", recipeID).Updates(&recipe)
 	return recipe, tx.Error
 }
 

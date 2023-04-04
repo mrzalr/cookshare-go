@@ -35,7 +35,6 @@ func (h *handler) CreateRecipe() gin.HandlerFunc {
 
 		// GET USER ID
 		userID, err := uuid.Parse(ctx.Value("id").(string))
-		fmt.Println(userID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -87,7 +86,7 @@ func (h *handler) GetAllRecipes() gin.HandlerFunc {
 func (h *handler) GetRecipeByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// GET RECIPE ID
-		recipeID, err := uuid.Parse(ctx.Param("recipeID"))
+		recipeID, err := uuid.Parse(ctx.Param("id"))
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -118,7 +117,7 @@ func (h *handler) GetRecipeByID() gin.HandlerFunc {
 func (h *handler) UpdateRecipe() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// GET RECIPE ID
-		recipeID, err := uuid.Parse(ctx.Param("recipeID"))
+		recipeID, err := uuid.Parse(ctx.Param("id"))
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -141,7 +140,6 @@ func (h *handler) UpdateRecipe() gin.HandlerFunc {
 
 		// GET USER ID
 		userID, err := uuid.Parse(ctx.Value("id").(string))
-		fmt.Println(userID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -172,7 +170,7 @@ func (h *handler) UpdateRecipe() gin.HandlerFunc {
 func (h *handler) DeleteRecipe() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// GET RECIPE ID
-		recipeID, err := uuid.Parse(ctx.Param("recipeID"))
+		recipeID, err := uuid.Parse(ctx.Param("id"))
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
@@ -184,7 +182,6 @@ func (h *handler) DeleteRecipe() gin.HandlerFunc {
 
 		// GET USER ID
 		userID, err := uuid.Parse(ctx.Value("id").(string))
-		fmt.Println(userID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(
 				http.StatusBadRequest,
