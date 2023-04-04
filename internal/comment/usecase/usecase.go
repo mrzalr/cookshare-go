@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/mrzalr/cookshare-go/internal/comment"
 	"github.com/mrzalr/cookshare-go/internal/models"
@@ -28,21 +30,34 @@ func (u *usecase) CreateNewComment(comment models.Comment) (models.CommentRespon
 	return comment.MapResponse(), nil
 }
 
-func (u *usecase) UpdateComment(commentID uuid.UUID, comment models.Comment) (models.Comment, error) {
+func (u *usecase) UpdateComment(commentID uuid.UUID, userID uuid.UUID, comment models.Comment) (models.CommentResponse, error) {
 	foundedComment, err := u.repository.FindByID(commentID)
 	if err != nil {
-		return models.Comment{}, err
+		return models.CommentResponse{}, err
+	}
+
+	if foundedComment.UserID != userID {
+		return models.CommentResponse{}, fmt.Errorf("non authorized user")
 	}
 
 	foundedComment.Content = comment.Content
 
-	return u.repository.Update(commentID, foundedComment)
+	updatedComment, err := u.repository.Update(commentID, foundedComment)
+	if err != nil {
+		return models.CommentResponse{}, err
+	}
+
+	return updatedComment.MapResponse(), nil
 }
 
-func (u *usecase) DeleteComment(commentID uuid.UUID) error {
-	_, err := u.repository.FindByID(commentID)
+func (u *usecase) DeleteComment(commentID uuid.UUID, userID uuid.UUID) error {
+	foundedComment, err := u.repository.FindByID(commentID)
 	if err != nil {
 		return err
+	}
+
+	if foundedComment.UserID != userID {
+		return fmt.Errorf("non authorized user")
 	}
 
 	return u.repository.Delete(commentID)

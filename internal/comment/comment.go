@@ -15,6 +15,6 @@ type Repository interface {
 
 type Usecase interface {
 	CreateNewComment(comment models.Comment) (models.CommentResponse, error)
-	UpdateComment(commentID uuid.UUID, comment models.Comment) (models.Comment, error)
-	DeleteComment(commentID uuid.UUID) error
+	UpdateComment(commentID uuid.UUID, userID uuid.UUID, comment models.Comment) (models.CommentResponse, error)
+	DeleteComment(commentID uuid.UUID, userID uuid.UUID) error
 }
