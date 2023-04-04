@@ -15,10 +15,10 @@ type Repository interface {
 }
 
 type Usecase interface {
-	CreateRecipe(recipe models.Recipe) (models.Recipe, error)
-	GetAllRecipes() ([]models.ShortRecipe, error)
-	GetRecipeByID(recipeID uuid.UUID) (models.Recipe, error)
-	GetRecipeByUser(userID uuid.UUID) ([]models.Recipe, error)
-	UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.Recipe, error)
+	CreateRecipe(recipe models.Recipe) (models.RecipeResponse, error)
+	GetAllRecipes() ([]models.RecipeResponse, error)
+	GetRecipeByID(recipeID uuid.UUID) (models.RecipeResponse, error)
+	GetRecipeByUser(userID uuid.UUID) ([]models.RecipeResponse, error)
+	UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.RecipeResponse, error)
 	DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error
 }

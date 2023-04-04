@@ -4,65 +4,122 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/mrzalr/cookshare-go/internal/comment"
 	"github.com/mrzalr/cookshare-go/internal/models"
 	"github.com/mrzalr/cookshare-go/internal/recipe"
+	"gorm.io/gorm"
 )
 
 type usecase struct {
-	repository recipe.Repository
+	repository        recipe.Repository
+	commentRepository comment.Repository
 }
 
-func New(repository recipe.Repository) recipe.Usecase {
-	return &usecase{repository}
+func New(repository recipe.Repository, commentRepository comment.Repository) recipe.Usecase {
+	return &usecase{
+		repository:        repository,
+		commentRepository: commentRepository,
+	}
 }
 
-func (u *usecase) CreateRecipe(recipe models.Recipe) (models.Recipe, error) {
+func (u *usecase) CreateRecipe(recipe models.Recipe) (models.RecipeResponse, error) {
 	createdRecipe, err := u.repository.Create(recipe)
 	if err != nil {
-		return models.Recipe{}, err
+		return models.RecipeResponse{}, err
 	}
 
-	insertedRecipe, err := u.repository.FindByID(createdRecipe.ID)
+	recipe, err = u.repository.FindByID(createdRecipe.ID)
 	if err != nil {
-		return models.Recipe{}, err
+		return models.RecipeResponse{}, err
 	}
 
-	return insertedRecipe, nil
+	return recipe.MapResponse(), nil
 }
 
-func (u *usecase) GetAllRecipes() ([]models.ShortRecipe, error) {
+func (u *usecase) GetAllRecipes() ([]models.RecipeResponse, error) {
 	recipes, err := u.repository.Find()
 	if err != nil {
-		return []models.ShortRecipe{}, err
+		return []models.RecipeResponse{}, err
 	}
 
-	shortRecipes := []models.ShortRecipe{}
+	recipesResponse := []models.RecipeResponse{}
 	for _, recipe := range recipes {
-		shortRecipe := recipe.MapToShortVersion()
-		shortRecipes = append(shortRecipes, shortRecipe)
+		comments, err := u.commentRepository.FindByRecipe(recipe.ID)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return []models.RecipeResponse{}, err
+		}
+
+		commentsResponse := []models.CommentResponse{}
+		for _, comment := range comments {
+			commentsResponse = append(commentsResponse, comment.MapResponse())
+		}
+
+		recipeResponse := recipe.MapResponse()
+		recipeResponse.Comments = commentsResponse
+		recipesResponse = append(recipesResponse, recipeResponse)
 	}
 
-	return shortRecipes, nil
+	return recipesResponse, nil
 
 }
 
-func (u *usecase) GetRecipeByID(recipeID uuid.UUID) (models.Recipe, error) {
-	return u.repository.FindByID(recipeID)
+func (u *usecase) GetRecipeByID(recipeID uuid.UUID) (models.RecipeResponse, error) {
+	recipe, err := u.repository.FindByID(recipeID)
+	if err != nil {
+		return models.RecipeResponse{}, err
+	}
+
+	comments, err := u.commentRepository.FindByRecipe(recipe.ID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return models.RecipeResponse{}, err
+	}
+
+	commentsResponse := []models.CommentResponse{}
+	for _, comment := range comments {
+		commentsResponse = append(commentsResponse, comment.MapResponse())
+	}
+
+	recipeResponse := recipe.MapResponse()
+	recipeResponse.Comments = commentsResponse
+
+	return recipeResponse, nil
 }
 
-func (u *usecase) GetRecipeByUser(userID uuid.UUID) ([]models.Recipe, error) {
-	return u.repository.FindByUser(userID)
+func (u *usecase) GetRecipeByUser(userID uuid.UUID) ([]models.RecipeResponse, error) {
+	recipes, err := u.repository.FindByUser(userID)
+	if err != nil {
+		return []models.RecipeResponse{}, err
+	}
+
+	recipesResponse := []models.RecipeResponse{}
+	for _, recipe := range recipes {
+		comments, err := u.commentRepository.FindByRecipe(recipe.ID)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return []models.RecipeResponse{}, err
+		}
+
+		commentsResponse := []models.CommentResponse{}
+		for _, comment := range comments {
+			commentsResponse = append(commentsResponse, comment.MapResponse())
+		}
+
+		recipeResponse := recipe.MapResponse()
+		recipeResponse.Comments = commentsResponse
+		recipesResponse = append(recipesResponse, recipeResponse)
+	}
+
+	return recipesResponse, nil
 }
 
-func (u *usecase) UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.Recipe, error) {
+func (u *usecase) UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe models.Recipe) (models.RecipeResponse, error) {
 	// CHECKING IF RECIPE IS EXIST
 	foundRecipe, err := u.repository.FindByID(recipeID)
 	if err != nil {
-		return models.Recipe{}, err
+		return models.RecipeResponse{}, err
 	}
 
 	if foundRecipe.UserID != userID {
-		return models.Recipe{}, fmt.Errorf("non authorized user")
+		return models.RecipeResponse{}, fmt.Errorf("non authorized user")
 	}
 
 	foundRecipe.Title = recipe.Title
@@ -75,10 +132,23 @@ func (u *usecase) UpdateRecipe(recipeID uuid.UUID, userID uuid.UUID, recipe mode
 
 	recipe, err = u.repository.Update(recipeID, foundRecipe)
 	if err != nil {
-		return models.Recipe{}, err
+		return models.RecipeResponse{}, err
 	}
 
-	return recipe, nil
+	comments, err := u.commentRepository.FindByRecipe(recipe.ID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return models.RecipeResponse{}, err
+	}
+
+	commentsResponse := []models.CommentResponse{}
+	for _, comment := range comments {
+		commentsResponse = append(commentsResponse, comment.MapResponse())
+	}
+
+	recipeResponse := recipe.MapResponse()
+	recipeResponse.Comments = commentsResponse
+
+	return recipeResponse, nil
 }
 
 func (u *usecase) DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error {
@@ -92,10 +162,5 @@ func (u *usecase) DeleteRecipe(recipeID uuid.UUID, userID uuid.UUID) error {
 		return fmt.Errorf("non authorized user")
 	}
 
-	err = u.repository.Delete(recipeID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return u.repository.Delete(recipeID)
 }

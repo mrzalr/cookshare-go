@@ -59,3 +59,8 @@ type UserWithToken struct {
 	User
 	Token string `json:"token"`
 }
+
+type Author struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+}

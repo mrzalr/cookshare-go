@@ -6,18 +6,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/mrzalr/cookshare-go/internal/comment"
 	"github.com/mrzalr/cookshare-go/internal/middleware"
 	"github.com/mrzalr/cookshare-go/internal/models"
 	"github.com/mrzalr/cookshare-go/internal/recipe"
 )
 
 type handler struct {
-	usecase recipe.Usecase
-	mw      *middleware.MiddlewareManager
+	usecase        recipe.Usecase
+	commentUsecase comment.Usecase
+	mw             *middleware.MiddlewareManager
 }
 
-func New(usecase recipe.Usecase, mw *middleware.MiddlewareManager) *handler {
-	return &handler{usecase, mw}
+func New(usecase recipe.Usecase, commentUsecase comment.Usecase, mw *middleware.MiddlewareManager) *handler {
+	return &handler{
+		usecase:        usecase,
+		commentUsecase: commentUsecase,
+		mw:             mw,
+	}
 }
 
 func (h *handler) CreateRecipe() gin.HandlerFunc {
@@ -59,6 +65,62 @@ func (h *handler) CreateRecipe() gin.HandlerFunc {
 		ctx.JSON(
 			http.StatusCreated,
 			models.StatusCreated(recipe),
+		)
+	}
+}
+
+func (h *handler) CreateNewComment() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// GET RECIPE ID
+		recipeID, err := uuid.Parse(ctx.Param("id"))
+		if err != nil {
+			ctx.AbortWithStatusJSON(
+				http.StatusBadRequest,
+				models.StatusBadRequest([]string{err.Error()}),
+			)
+
+			return
+		}
+
+		// BINDING JSON BODY TO MODELS
+		commentRequest := models.Comment{}
+		if err := ctx.ShouldBindJSON(&commentRequest); err != nil {
+			ctx.AbortWithStatusJSON(
+				http.StatusBadRequest,
+				models.StatusBadRequest([]string{err.Error()}),
+			)
+
+			return
+		}
+
+		// GET USER ID
+		userID, err := uuid.Parse(ctx.Value("id").(string))
+		if err != nil {
+			ctx.AbortWithStatusJSON(
+				http.StatusBadRequest,
+				models.StatusBadRequest([]string{err.Error()}),
+			)
+
+			return
+		}
+
+		// CREATE NEW RECIPE COMMENT
+		commentRequest.UserID = userID
+		commentRequest.RecipeID = recipeID
+
+		comment, err := h.commentUsecase.CreateNewComment(commentRequest)
+		if err != nil {
+			ctx.AbortWithStatusJSON(
+				http.StatusBadGateway,
+				models.StatusBadGateway([]string{err.Error()}),
+			)
+
+			return
+		}
+
+		ctx.JSON(
+			http.StatusCreated,
+			models.StatusCreated(comment),
 		)
 	}
 }
